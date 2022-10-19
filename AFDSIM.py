@@ -3,24 +3,28 @@ from venv import create
 
 
 class State:
-    def __init__(self,label,isFinal,isInitial=False):
+    def __init__(self, label, isFinal, isInitial=False):
         self.label = label
         self.isInitial = isInitial
         self.isFinal = isFinal
-    
+
     def printState(self):
-        print("[LABEL: "+self.label+", Final? "+str(self.isFinal)+", Initial? "+str(self.isInitial)+"]")
+        print("[LABEL: " + self.label + ", Final? " + str(self.isFinal) + ", Initial? " + str(self.isInitial) + "]")
+
 
 class Transition:
-    def __init__(self,state1,state2,symbol):
+    def __init__(self, state1, state2, symbol):
         self.state1 = state1
         self.state2 = state2
         self.symbol = symbol
+
     def printTransition(self):
-        print("{TRANSITION: "+self.symbol+", FROM STATE '"+self.state1.label+"' TO STATE '"+self.state2.label+"'}")
+        print(
+            "{TRANSITION: " + self.symbol + ", FROM STATE '" + self.state1.label + "' TO STATE '" + self.state2.label + "'}")
+
 
 class FA:
-    def __init__(self,states,alphabet,transitions,isNFA=False):
+    def __init__(self, states, alphabet, transitions, isNFA=False):
         self.states = states
         self.alphabet = [""]
         self.alphabet += alphabet
@@ -35,7 +39,7 @@ class FA:
         for i in self.states:
             if i.isFinal == True:
                 self.finals.append(i)
-    
+
     def printFA(self):
         print(self.alphabet)
         for i in self.states:
@@ -43,22 +47,21 @@ class FA:
         for i in self.transitions:
             i.printTransition()
 
-    def getStateTransitions(self,state):
-        sTransitions = []
+    def getStateTransitions(self, state):
+        stateTransitions = []
         for i in self.transitions:
             if i.state1 == state:
-                sTransitions.append(i)
-        return sTransitions
+                stateTransitions.append(i)
+        return stateTransitions
 
-    def getStateTransitionsSymbol(self,state,symbol):
-        sTransitions = []
+    def getStateTransitionsSymbol(self, state, symbol):
+        stateTransitions = []
         for i in self.transitions:
             if i.state1 == state and i.symbol == symbol:
-                sTransitions.append(i)
-        return sTransitions
+                stateTransitions.append(i)
+        return stateTransitions
 
-    def checkWord(self,word):
-        valid = True
+    def checkWord(self, word):
         wordList = [c for c in word]
         for i in self.alphabet:
             wordList = [c for c in wordList if c != i]
@@ -68,66 +71,78 @@ class FA:
             valid = True
         return valid
 
-    def readWord(self,word):
+    def readWord(self, word):
         valid = False
-        if self.checkWord(word): # se a palavra é válida
-            PC = self.initial # PC = program counter, inicia no estado inicial
-            valid = PC.isFinal # o estado atual é o final?
-            curTransitions = [] # = transições do estado no PC
-            wordList = [c for c in word] # transforma palavra em lista
-            while len(wordList) > 0: # enquanto há letras na palavra
+        if self.checkWord(word):  # se a palavra é válida
+            PC = self.initial  # PC = program counter, inicia no estado inicial
+            valid = PC.isFinal  # o estado atual é o final?
+            wordList = [c for c in word]  # transforma palavra em lista
+            while len(wordList) > 0:  # enquanto há letras na palavra
                 print(PC.label)
                 print(wordList)
-                curTransitions = self.getStateTransitionsSymbol(PC,wordList[0]) # pega transições do atual estado com a letra atual
-                if len(curTransitions) > 0 and len(curTransitions) < 2: # se só há uma transição válida para a letra atual
-                    PC = curTransitions[0].state2 # avança PC para o próximo estado da transição
-                    wordList.pop(0) # remove letra atual da lista
-                    valid = PC.isFinal # o estado atual é o final?
-                else: # erro, não é AFD!
+                curTransitions = self.getStateTransitionsSymbol(PC, wordList[
+                    0])  # pega transições do atual estado com a letra atual
+                if len(curTransitions) > 0 and len(
+                        curTransitions) < 2:  # se só há uma transição válida para a letra atual
+                    PC = curTransitions[0].state2  # avança PC para o próximo estado da transição
+                    wordList.pop(0)  # remove letra atual da lista
+                    valid = PC.isFinal  # o estado atual é o final?
+                else:  # erro, não é AFD!
                     print("INVALID")
-                    wordList = [] # esvazia a lista de caracteres da palavra (break)
+                    wordList = []  # esvazia a lista de caracteres da palavra (break)
                     valid = False
             print(PC.label)
-            print(wordList) # imprime lista nessa etapa
+            print(wordList)  # imprime lista nessa etapa
         return valid
 
-
-    def compareTransitions(self,T1,T2):
+    def compareTransitions(self, T1, T2):
         valid = False
         if T1.state1 == T2.state1 and T1.state2 == T2.state2 and T1.symbol == T2.symbol:
             valid = True
         return valid
-    
-    def checkIfTransitionExists(self,transitions,T):
+
+    def checkIfTransitionExists(self, transitions, T):
         valid = False
         for i in transitions:
-            if valid == False and self.compareTransitions(i,T):
+            if valid is False and self.compareTransitions(i, T):
                 valid = True
         return valid
 
     def checkLambdas(self):
         valid = True
         for i in self.transitions:
-            if valid == True and i.symbol == "":
+            if valid is True and i.symbol == "":
                 valid = False
         return valid
 
+
 def createTestDFA():
-    S1 = State('A',False,True)
-    S2 = State('B',True)
-    T1 = Transition(S1,S1,'a')
-    T2 = Transition(S1,S2,'b')
-    T3 = Transition(S2,S2,'b')
-    T4 = Transition(S2,S1,'a')
-    T5 = Transition(S1,S1,'b')
-    # (a*b*a*)*b
-    ALPHABET = ['a','b']
-    STATES = [S1,S2]
-    TRANSITIONS = [T1,T2,T3,T4]
-    
-    DFA1 = FA(STATES,ALPHABET,TRANSITIONS)
+    S1 = State('A', False, True)
+    S2 = State('B', True)
+    T1 = Transition(S1, S1, 'a')
+    T2 = Transition(S1, S2, 'b')
+    T3 = Transition(S2, S2, 'b')
+    T4 = Transition(S2, S1, 'a')
+
+    ALPHABET = ['a', 'b']
+    STATES = [S1, S2]
+    TRANSITIONS = [T1, T2, T3, T4]
+
+    DFA1 = FA(STATES, ALPHABET, TRANSITIONS)
     print(DFA1.readWord("aba"))
     print("\nDONE\n")
 
-os.system('cls')
+
+def createTestAFNtoAFD():
+    S1 = State('A', False, True)
+    S2 = State('B', True)
+    T1 = Transition(S1, S1, 'a')
+    T2 = Transition(S1, S1, 'b')
+    T3 = Transition(S1, S2, 'a')
+
+    ALPHABET = ['a', 'b']
+    STATES = [S1, S2]
+    TRANSITIONS = [T1, T2, T3]
+
+
 createTestDFA()
