@@ -1,8 +1,11 @@
+import copy
+
 class State:
-    def __init__(self, label, isFinal, isInitial=False):
+    def __init__(self, label, isFinal, isInitial=False, mergedStates=None):
         self.label = label
         self.isInitial = isInitial
         self.isFinal = isFinal
+        self.mergedStates = mergedStates
 
     def printState(self):
         print("[LABEL: " + self.label + ", Final? " + str(self.isFinal) + ", Initial? " + str(self.isInitial) + "]")
@@ -17,6 +20,9 @@ class Transition:
     def printTransition(self):
         print(
             "{TRANSITION: " + self.symbol + ", FROM STATE '" + self.state1.label + "' TO STATE '" + self.state2.label + "'}")
+
+    def setState1(self, newState1):
+        self.state1 = newState1
 
 
 class FA:
@@ -52,9 +58,20 @@ class FA:
 
     def getStateTransitionsSymbol(self, state, symbol):
         sTransitions = []
-        for i in self.transitions:
-            if i.state1 == state and i.symbol == symbol:
-                sTransitions.append(i)
+
+        if state.mergedStates is None:
+            for i in self.transitions:
+                if i.state1 == state and i.symbol == symbol:
+                    sTransitions.append(i)
+        else:
+            sTransitions = []
+            for s in state.mergedStates:
+                for i in self.transitions:
+                    if i.state1 == s and i.symbol == symbol:
+                        cloneI = copy.deepcopy(i)  # Clone object
+                        cloneI.setState1(state)  # Set new state1
+                        sTransitions.append(cloneI)
+
         return sTransitions
 
     def checkWord(self, word):
@@ -95,6 +112,13 @@ class FA:
     def compareStates(S1, S2):
         return S1.label == S2.label
 
+    @staticmethod
+    def checkIsStateExistsInList(list, stateLooked):
+        for state in list:
+            if state.label == stateLooked.label:
+                return True
+        return False
+
     def checkIfStateExists(self, states, S):
         valid = False
         for i in states:
@@ -123,39 +147,53 @@ class FA:
                 valid = False
         return valid
 
+    @staticmethod
+    def getMergedStates(transitions):
+        merged = None
+        if len(transitions) > 1:
+            merged = []
+            for t in transitions:
+                merged.append(t.state2)
+
+        return merged
+
     def convertNFA(self):
         newAutomaton = FA([], self.alphabet, [])
         newAutomaton.initial = self.initial
         newAutomaton.states.append(newAutomaton.initial)
-        for X in newAutomaton.states:
-            for a in self.alphabet:
-                mergedStates = []
-                thisTransitions = self.getStateTransitionsSymbol(X, a)
-                if len(thisTransitions) > 0:
+
+        statesToProcess = [newAutomaton.initial]
+
+        for X in statesToProcess:
+            for symbol in self.alphabet:
+
+                thisTransitions = self.getStateTransitionsSymbol(X, symbol)
+
+                if len(thisTransitions) > 0:  # If state doesnt have transitions, nothing to do :)
                     YLabel = ""
                     YIsFinal = False
+
                     for i in thisTransitions:
                         YLabel += i.state2.label
-                        mergedStates.append(i.state2)
+                        if len(thisTransitions) > 1:
+                            statesToProcess.append(i.state2)
                         if not YIsFinal and i.state2.isFinal:
                             YIsFinal = True
-                    Y = State(YLabel, YIsFinal)
-                    newTransition = Transition(X, Y, a)
-                    if not self.compareStates(X, Y):
+
+                    Y = State(YLabel, YIsFinal, mergedStates=self.getMergedStates(thisTransitions))
+                    newTransition = Transition(X, Y, symbol)
+
+                    # Check if state already exist in new automaton states
+                    if not self.checkIsStateExistsInList(newAutomaton.states, Y):
                         newAutomaton.states.append(Y)
-                        if Y.isFinal:
+                        if Y.isFinal:  # If state is final, add it to automaton finals
                             newAutomaton.finals.append(Y)
+
+                        # Check if state is in line to be processed
+                        if not self.checkIsStateExistsInList(statesToProcess, Y):
+                            statesToProcess.append(Y)
+
                     newAutomaton.transitions.append(newTransition)
-                    for i in mergedStates:
-                        for j in self.getStateTransitions(i):
-                            newTransitionState1 = Y
-                            if self.checkIfStateExists(mergedStates, j.state2):
-                                newTransitionState2 = Y
-                            else:
-                                newTransitionState2 = j.state2
-                            newTransition2 = Transition(newTransitionState1, newTransitionState2, j.symbol)
-                            if not self.checkIfTransitionExists(newAutomaton.transitions, newTransition2):
-                                newAutomaton.transitions.append(newTransition2)
 
         return newAutomaton
 
@@ -196,7 +234,29 @@ def createTestNFA():
     NFA1.printFA()
 
     DFA2 = NFA1.convertNFA()
+    print("CONVERTED: ")
+    DFA2.printFA()
+
+
+def createTestNFA2():
+    S1 = State('A', False, True)
+    S2 = State('B', True)
+    T1 = Transition(S1, S1, 'a')
+    T2 = Transition(S1, S1, 'b')
+    T3 = Transition(S1, S2, 'a')
+
+    ALPHABET = ['a', 'b']
+    STATES = [S1, S2]
+    TRANSITIONS = [T1, T2, T3]
+    NFA1 = FA(STATES, ALPHABET, TRANSITIONS)
+
+    NFA1.printFA()
+
+    DFA2 = NFA1.convertNFA()
+
+    print("CONVERTED: ")
 
     DFA2.printFA()
 
-createTestNFA()
+
+createTestNFA2()
