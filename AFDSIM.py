@@ -1,7 +1,3 @@
-import os
-from venv import create
-
-
 class State:
     def __init__(self, label, isFinal, isInitial=False):
         self.label = label
@@ -33,11 +29,11 @@ class FA:
         self.initial = None
         self.finals = []
         for i in self.states:
-            if i.isInitial == True:
+            if i.isInitial:
                 self.initial = i
                 break
         for i in self.states:
-            if i.isFinal == True:
+            if i.isFinal:
                 self.finals.append(i)
 
     def printFA(self):
@@ -48,18 +44,18 @@ class FA:
             i.printTransition()
 
     def getStateTransitions(self, state):
-        stateTransitions = []
+        sTransitions = []
         for i in self.transitions:
             if i.state1 == state:
-                stateTransitions.append(i)
-        return stateTransitions
+                sTransitions.append(i)
+        return sTransitions
 
     def getStateTransitionsSymbol(self, state, symbol):
-        stateTransitions = []
+        sTransitions = []
         for i in self.transitions:
             if i.state1 == state and i.symbol == symbol:
-                stateTransitions.append(i)
-        return stateTransitions
+                sTransitions.append(i)
+        return sTransitions
 
     def checkWord(self, word):
         wordList = [c for c in word]
@@ -95,7 +91,19 @@ class FA:
             print(wordList)  # imprime lista nessa etapa
         return valid
 
-    def compareTransitions(self, T1, T2):
+    @staticmethod
+    def compareStates(S1, S2):
+        return S1.label == S2.label
+
+    def checkIfStateExists(self, states, S):
+        valid = False
+        for i in states:
+            if not valid and self.compareStates(i, S):
+                valid = True
+        return valid
+
+    @staticmethod
+    def compareTransitions(T1, T2):
         valid = False
         if T1.state1 == T2.state1 and T1.state2 == T2.state2 and T1.symbol == T2.symbol:
             valid = True
@@ -104,16 +112,52 @@ class FA:
     def checkIfTransitionExists(self, transitions, T):
         valid = False
         for i in transitions:
-            if valid is False and self.compareTransitions(i, T):
+            if not valid and self.compareTransitions(i, T):
                 valid = True
         return valid
 
     def checkLambdas(self):
         valid = True
         for i in self.transitions:
-            if valid is True and i.symbol == "":
+            if valid and i.symbol == "":
                 valid = False
         return valid
+
+    def convertNFA(self):
+        newAutomaton = FA([], self.alphabet, [])
+        newAutomaton.initial = self.initial
+        newAutomaton.states.append(newAutomaton.initial)
+        for X in newAutomaton.states:
+            for a in self.alphabet:
+                mergedStates = []
+                thisTransitions = self.getStateTransitionsSymbol(X, a)
+                if len(thisTransitions) > 0:
+                    YLabel = ""
+                    YIsFinal = False
+                    for i in thisTransitions:
+                        YLabel += i.state2.label
+                        mergedStates.append(i.state2)
+                        if not YIsFinal and i.state2.isFinal:
+                            YIsFinal = True
+                    Y = State(YLabel, YIsFinal)
+                    newTransition = Transition(X, Y, a)
+                    if not self.compareStates(X, Y):
+                        newAutomaton.states.append(Y)
+                        if Y.isFinal:
+                            newAutomaton.finals.append(Y)
+                    newAutomaton.transitions.append(newTransition)
+                    for i in mergedStates:
+                        for j in self.getStateTransitions(i):
+                            newTransitionState1 = Y
+                            if self.checkIfStateExists(mergedStates, j.state2):
+                                newTransitionState2 = Y
+                            else:
+                                newTransitionState2 = j.state2
+                            newTransition2 = Transition(newTransitionState1, newTransitionState2, j.symbol)
+                            if not self.checkIfTransitionExists(newAutomaton.transitions, newTransition2):
+                                newAutomaton.transitions.append(newTransition2)
+
+        return newAutomaton
 
 
 def createTestDFA():
@@ -123,7 +167,8 @@ def createTestDFA():
     T2 = Transition(S1, S2, 'b')
     T3 = Transition(S2, S2, 'b')
     T4 = Transition(S2, S1, 'a')
-
+    T5 = Transition(S1, S1, 'b')
+    # (a*b*a*)*b
     ALPHABET = ['a', 'b']
     STATES = [S1, S2]
     TRANSITIONS = [T1, T2, T3, T4]
@@ -133,16 +178,25 @@ def createTestDFA():
     print("\nDONE\n")
 
 
-def createTestAFNtoAFD():
+def createTestNFA():
     S1 = State('A', False, True)
     S2 = State('B', True)
-    T1 = Transition(S1, S1, 'a')
-    T2 = Transition(S1, S1, 'b')
-    T3 = Transition(S1, S2, 'a')
+    S3 = State('C', True)
+    T1 = Transition(S1, S1, 'b')
+    T2 = Transition(S1, S2, 'a')
+    T3 = Transition(S1, S3, 'a')
+    T4 = Transition(S2, S2, 'b')
+    T5 = Transition(S3, S3, 'a')
 
     ALPHABET = ['a', 'b']
-    STATES = [S1, S2]
-    TRANSITIONS = [T1, T2, T3]
+    STATES = [S1, S2, S3]
+    TRANSITIONS = [T1, T2, T3, T4, T5]
+    NFA1 = FA(STATES, ALPHABET, TRANSITIONS)
 
+    NFA1.printFA()
 
-createTestDFA()
+    DFA2 = NFA1.convertNFA()
+
+    DFA2.printFA()
+
+createTestNFA()
