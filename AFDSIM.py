@@ -176,7 +176,8 @@ class FA:
                     for i in thisTransitions:
                         YLabel += i.state2.label
                         if len(thisTransitions) > 1:
-                            statesToProcess.append(i.state2)
+                            if not self.checkIsStateExistsInList(statesToProcess, i.state2):
+                                statesToProcess.append(i.state2)
                         if not YIsFinal and i.state2.isFinal:
                             YIsFinal = True
 
