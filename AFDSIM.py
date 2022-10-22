@@ -1,5 +1,6 @@
 import copy
 
+
 class State:
     def __init__(self, label, isFinal, isInitial=False, mergedStates=None):
         self.label = label
@@ -28,8 +29,7 @@ class Transition:
 class FA:
     def __init__(self, states, alphabet, transitions, isNFA=False):
         self.states = states
-        self.alphabet = [""]
-        self.alphabet += alphabet
+        self.alphabet = alphabet
         self.transitions = transitions
         self.isNFA = isNFA
         self.initial = None
@@ -58,20 +58,18 @@ class FA:
 
     def getStateTransitionsSymbol(self, state, symbol):
         sTransitions = []
-
         if state.mergedStates is None:
             for i in self.transitions:
                 if i.state1 == state and i.symbol == symbol:
                     sTransitions.append(i)
         else:
-            sTransitions = []
             for s in state.mergedStates:
                 for i in self.transitions:
-                    if i.state1 == s and i.symbol == symbol:
+                    if self.compareStates(i.state1, s) and i.symbol == symbol:
                         cloneI = copy.deepcopy(i)  # Clone object
                         cloneI.setState1(state)  # Set new state1
-                        sTransitions.append(cloneI)
-
+                        if not self.checkIfTransitionExists(sTransitions, cloneI):  # prevent double state in transitions
+                            sTransitions.append(cloneI)
         return sTransitions
 
     def checkWord(self, word):
@@ -126,26 +124,16 @@ class FA:
                 valid = True
         return valid
 
-    @staticmethod
-    def compareTransitions(T1, T2):
-        valid = False
-        if T1.state1 == T2.state1 and T1.state2 == T2.state2 and T1.symbol == T2.symbol:
-            valid = True
-        return valid
+    def compareTransitions(self, T1, T2):
+        if self.compareStates(T1.state1, T2.state1) and self.compareStates(T1.state2, T2.state2) and T1.symbol == T2.symbol:
+            return True
+        return False
 
     def checkIfTransitionExists(self, transitions, T):
-        valid = False
-        for i in transitions:
-            if not valid and self.compareTransitions(i, T):
-                valid = True
-        return valid
-
-    def checkLambdas(self):
-        valid = True
-        for i in self.transitions:
-            if valid and i.symbol == "":
-                valid = False
-        return valid
+        for t in transitions:
+            if self.compareTransitions(t, T):
+                return True
+        return False
 
     @staticmethod
     def getMergedStates(transitions):
@@ -255,9 +243,42 @@ def createTestNFA2():
 
     DFA2 = NFA1.convertNFA()
 
-    print("CONVERTED: ")
+    print("\nCONVERTED: \n")
 
     DFA2.printFA()
 
 
-createTestNFA2()
+def createTestNFA3():
+    S1 = State('Q0', False, True)
+    S2 = State('Q1', False)
+    S3 = State('Q2', False)
+    S4 = State('Q3', True)
+
+    T1 = Transition(S1, S1, 'a')
+    T2 = Transition(S1, S1, 'b')
+
+    T3 = Transition(S1, S2, 'a')
+    T4 = Transition(S1, S3, 'b')
+
+    T5 = Transition(S2, S4, 'b')
+    T6 = Transition(S3, S4, 'a')
+
+    T7 = Transition(S4, S4, 'a')
+    T8 = Transition(S4, S4, 'b')
+
+    ALPHABET = ['a', 'b']
+    STATES = [S1, S2, S3, S4]
+    TRANSITIONS = [T1, T2, T3, T4, T5, T6, T7, T8]
+
+    NFA1 = FA(STATES, ALPHABET, TRANSITIONS)
+
+    NFA1.printFA()
+
+    DFA2 = NFA1.convertNFA()
+
+    print("\nCONVERTED: \n")
+
+    DFA2.printFA()
+
+
+createTestNFA3()
