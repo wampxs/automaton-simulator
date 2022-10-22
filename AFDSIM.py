@@ -1,3 +1,4 @@
+from cProfile import label
 import copy
 import os
 
@@ -205,9 +206,17 @@ class FA:
         newAutomaton.states += self.addMissingStates(newAutomaton.states)
         return newAutomaton
 
+
+    def matchState(self,s):
+        output = None
+        for i in self.states:
+            if output == None and i.isInitial == s.isInitial and i.isFinal == s.isFinal and i.label == s.label:
+                output = i
+        return output
+
     def toJffFile(self):
         if os.path.exists("AFD.jff"):
-            os.remove("AFD.jff")
+            os.remove("AFD.jff")        
 
         file = open("AFD.jff", "a")
         file.write(
@@ -219,29 +228,33 @@ class FA:
         file.write("\t\t<!--The list of states.-->\n")
         x = 50
         y = 100
-
-        for i in range(len(self.states)):
-            state = self.states[i]
-            state.setId(i)  # add id in states
-            file.write("\t\t<state id=\"" + str(state.id) + "\" name=\"" + state.label + "\">\n")
+        stateCounter = 0
+        for s in self.states:
+            s.id = stateCounter # add id in states
+            file.write("\t\t<state id=\"" + str(s.id) + "\" name=\"" + s.label + "\">\n")
             file.write("\t\t\t<x>" + str(x) + ".0</x>\n")
             x += 50
             file.write("\t\t\t<y>" + str(y) + ".0</y>\n")
             y += 30
-            if state.isInitial:
+            if s.isInitial:
                 file.write("\t\t\t<initial/>\n")
-            if state.isFinal:
+            if s.isFinal:
                 file.write("\t\t\t<final/>\n")
             file.write("\t\t</state>\n")
+            stateCounter += 1
 
-        # TODO: fix id bug
         file.write("\t\t<!--The list of transitions.-->\n")
+        transitionCounter = 1
         for transition in self.transitions:
+            thisState1 = self.matchState(transition.state1)
+            thisState2 = self.matchState(transition.state2)
             file.write("\t\t<transition>\n")
-            file.write("\t\t\t<from>" + str(transition.state1.id) + "</from>\n")
-            file.write("\t\t\t<to>" + str(transition.state2.id) + "</to>\n")
+            file.write("\t\t\t<from>" + str(thisState1.id) + "</from>\n")
+            file.write("\t\t\t<to>" + str(thisState2.id) + "</to>\n")
             file.write("\t\t\t<read>" + transition.symbol + "</read>\n")
             file.write("\t\t</transition>\n")
+            file.write("\t\t<!--Transition "+str(transitionCounter)+"-->\n")
+            transitionCounter+=1
 
         file.write("\t</automaton>\n")
         file.write("</structure>")
