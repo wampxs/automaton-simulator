@@ -227,7 +227,7 @@ class FA:
             file.write("\t\t\t<x>" + str(x) + ".0</x>\n")
             x += 50
             file.write("\t\t\t<y>" + str(y) + ".0</y>\n")
-            y += 50
+            y += 30
             if state.isInitial:
                 file.write("\t\t\t<initial/>\n")
             if state.isFinal:
