@@ -1,16 +1,20 @@
 import copy
+import os
 
 
 class State:
-    def __init__(self, label, isFinal, isInitial=False, mergedStates=None):
+    def __init__(self, label, isFinal, isInitial=False, mergedStates=None, id=""):
         self.label = label
         self.isInitial = isInitial
         self.isFinal = isFinal
         self.mergedStates = mergedStates
+        self.id = id
 
     def printState(self):
         print("[LABEL: " + self.label + ", Final? " + str(self.isFinal) + ", Initial? " + str(self.isInitial) + "]")
 
+    def setId(self, newId):
+        self.id = newId
 
 class Transition:
     def __init__(self, state1, state2, symbol):
@@ -68,7 +72,8 @@ class FA:
                     if self.compareStates(i.state1, s) and i.symbol == symbol:
                         cloneI = copy.deepcopy(i)  # Clone object
                         cloneI.setState1(state)  # Set new state1
-                        if not self.checkIfTransitionExists(sTransitions, cloneI):  # prevent double state in transitions
+                        if not self.checkIfTransitionExists(sTransitions,
+                                                            cloneI):  # prevent double state in transitions
                             sTransitions.append(cloneI)
         return sTransitions
 
@@ -118,14 +123,14 @@ class FA:
         return False
 
     def checkIfStateExists(self, states, S):
-        valid = False
         for i in states:
-            if not valid and self.compareStates(i, S):
-                valid = True
-        return valid
+            if self.compareStates(i, S):
+                return True
+        return False
 
     def compareTransitions(self, T1, T2):
-        if self.compareStates(T1.state1, T2.state1) and self.compareStates(T1.state2, T2.state2) and T1.symbol == T2.symbol:
+        if self.compareStates(T1.state1, T2.state1) and self.compareStates(T1.state2,
+                                                                           T2.state2) and T1.symbol == T2.symbol:
             return True
         return False
 
@@ -144,6 +149,19 @@ class FA:
                 merged.append(t.state2)
 
         return merged
+
+    def addMissingStates(self, usedStates):
+        def findStateToRemove(list, stateToRemove):
+            for listState in list:
+                if self.compareStates(listState, stateToRemove):
+                    return listState
+
+        missing = self.states
+        for state in usedStates:
+            if self.checkIfStateExists(self.states, state):
+                missing.remove(findStateToRemove(missing, state))
+
+        return missing
 
     def convertNFA(self):
         newAutomaton = FA([], self.alphabet, [])
@@ -184,17 +202,59 @@ class FA:
 
                     newAutomaton.transitions.append(newTransition)
 
+        newAutomaton.states += self.addMissingStates(newAutomaton.states)
         return newAutomaton
+
+    def toJffFile(self):
+        if os.path.exists("AFD.jff"):
+            os.remove("AFD.jff")
+
+        file = open("AFD.jff", "a")
+        file.write(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><!--Created by Camilla + Diogo.--><structure>\n")
+
+        file.write("\t<type>fa</type>\n")
+        file.write("\t<automaton>\n")
+
+        file.write("\t\t<!--The list of states.-->\n")
+        x = 50
+        y = 100
+
+        for i in range(len(self.states)):
+            state = self.states[i]
+            state.setId(i)  # add id in states
+            file.write("\t\t<state id=\"" + str(state.id) + "\" name=\"" + state.label + "\">\n")
+            file.write("\t\t\t<x>" + str(x) + ".0</x>\n")
+            x += 50
+            file.write("\t\t\t<y>" + str(y) + ".0</y>\n")
+            y += 50
+            if state.isInitial:
+                file.write("\t\t\t<initial/>\n")
+            if state.isFinal:
+                file.write("\t\t\t<final/>\n")
+            file.write("\t\t</state>\n")
+
+        # TODO: fix id bug
+        file.write("\t\t<!--The list of transitions.-->\n")
+        for transition in self.transitions:
+            file.write("\t\t<transition>\n")
+            file.write("\t\t\t<from>" + str(transition.state1.id) + "</from>\n")
+            file.write("\t\t\t<to>" + str(transition.state2.id) + "</to>\n")
+            file.write("\t\t\t<read>" + transition.symbol + "</read>\n")
+            file.write("\t\t</transition>\n")
+
+        file.write("\t</automaton>\n")
+        file.write("</structure>")
 
 
 def createTestDFA():
     S1 = State('A', False, True)
     S2 = State('B', True)
+
     T1 = Transition(S1, S1, 'a')
     T2 = Transition(S1, S2, 'b')
     T3 = Transition(S2, S2, 'b')
     T4 = Transition(S2, S1, 'a')
-    T5 = Transition(S1, S1, 'b')
     # (a*b*a*)*b
     ALPHABET = ['a', 'b']
     STATES = [S1, S2]
@@ -223,7 +283,7 @@ def createTestNFA():
     NFA1.printFA()
 
     DFA2 = NFA1.convertNFA()
-    print("CONVERTED: ")
+    print("\nCONVERTED: \n")
     DFA2.printFA()
 
 
@@ -279,6 +339,8 @@ def createTestNFA3():
     print("\nCONVERTED: \n")
 
     DFA2.printFA()
+
+    DFA2.toJffFile()
 
 
 createTestNFA3()
