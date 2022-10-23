@@ -1,6 +1,7 @@
 from cProfile import label
 import copy
 import os
+import re
 
 
 class State:
@@ -17,6 +18,7 @@ class State:
     def setId(self, newId):
         self.id = newId
 
+
 class Transition:
     def __init__(self, state1, state2, symbol):
         self.state1 = state1
@@ -32,11 +34,10 @@ class Transition:
 
 
 class FA:
-    def __init__(self, states, alphabet, transitions, isNFA=False):
+    def __init__(self, states, alphabet, transitions):
         self.states = states
         self.alphabet = alphabet
         self.transitions = transitions
-        self.isNFA = isNFA
         self.initial = None
         self.finals = []
         for i in self.states:
@@ -206,17 +207,16 @@ class FA:
         newAutomaton.states += self.addMissingStates(newAutomaton.states)
         return newAutomaton
 
-
-    def matchState(self,s):
+    def matchState(self, s):
         output = None
         for i in self.states:
-            if output == None and i.isInitial == s.isInitial and i.isFinal == s.isFinal and i.label == s.label:
+            if output is None and i.isInitial == s.isInitial and i.isFinal == s.isFinal and i.label == s.label:
                 output = i
         return output
 
     def toJffFile(self):
         if os.path.exists("AFD.jff"):
-            os.remove("AFD.jff")        
+            os.remove("AFD.jff")
 
         file = open("AFD.jff", "a")
         file.write(
@@ -230,7 +230,7 @@ class FA:
         y = 100
         stateCounter = 0
         for s in self.states:
-            s.id = stateCounter # add id in states
+            s.id = stateCounter  # add id in states
             file.write("\t\t<state id=\"" + str(s.id) + "\" name=\"" + s.label + "\">\n")
             file.write("\t\t\t<x>" + str(x) + ".0</x>\n")
             x += 50
@@ -253,11 +253,60 @@ class FA:
             file.write("\t\t\t<to>" + str(thisState2.id) + "</to>\n")
             file.write("\t\t\t<read>" + transition.symbol + "</read>\n")
             file.write("\t\t</transition>\n")
-            file.write("\t\t<!--Transition "+str(transitionCounter)+"-->\n")
-            transitionCounter+=1
+            file.write("\t\t<!--Transition " + str(transitionCounter) + "-->\n")
+            transitionCounter += 1
 
         file.write("\t</automaton>\n")
         file.write("</structure>")
+
+
+def fromJffFile():
+    states = []
+    transitions = []
+    alphabet = set([])
+
+    def getStateFromSubarray(subarray):
+        id = re.search('id="(.*)" ', subarray[0]).group(1)
+        label = re.search('name="(.*)">', subarray[0]).group(1)
+
+        initial = bool(match for match in subarray if "<initial/>" in match)
+
+        final = bool(match for match in subarray if "<final/>" in match)
+
+        state = State(label=str(label), isFinal=final, isInitial=initial, mergedStates=None, id=id)
+
+        states.append(state)
+
+    def getStateById(id):
+        for s in states:
+            if s.id == id:
+                return s
+
+    def getTransitionFromSubarray(subarray):
+        initialId: str = re.search('<from>(.*)</from>', subarray[1]).group(1)
+        destinationId: str = re.search('<to>(.*)</to>', subarray[2]).group(1)
+        symbol = re.search('<read>(.*)</read>', subarray[3]).group(1)
+
+        transition = Transition(state1=getStateById(initialId), state2=getStateById(destinationId), symbol=symbol)
+        transitions.append(transition)
+        alphabet.add(symbol)
+
+    file = open("AFD.jff", "r")
+    lines = file.readlines()
+
+    for i in range(len(lines)):
+        line = lines[i]
+
+        if line.find("<state") != -1:
+            stateSubarray = lines[i: i+6]
+            getStateFromSubarray(stateSubarray)
+
+        if line.find("<transition") != -1:
+            transitionSubarray = lines[i: i + 5]
+            getTransitionFromSubarray(transitionSubarray)
+
+    automaton = FA(states, alphabet, transitions)
+    return automaton
 
 
 def createTestDFA():
@@ -356,4 +405,9 @@ def createTestNFA3():
     DFA2.toJffFile()
 
 
-createTestNFA3()
+def createFromJffFileTest():
+    automaton = fromJffFile()
+    automaton.printFA()
+
+
+createFromJffFileTest()
