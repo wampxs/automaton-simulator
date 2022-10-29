@@ -2,6 +2,7 @@ from cProfile import label
 import copy
 import os
 import re
+import PySimpleGUI as sg
 
 
 class State:
@@ -98,10 +99,8 @@ class FA:
             while len(wordList) > 0:  # enquanto há letras na palavra
                 print(PC.label)
                 print(wordList)
-                curTransitions = self.getStateTransitionsSymbol(PC, wordList[
-                    0])  # pega transições do atual estado com a letra atual
-                if len(curTransitions) > 0 and len(
-                        curTransitions) < 2:  # se só há uma transição válida para a letra atual
+                curTransitions = self.getStateTransitionsSymbol(PC, wordList[0])  # pega transições do atual estado com a letra atual
+                if len(curTransitions) == 1:  # se só há uma transição válida para a letra atual
                     PC = curTransitions[0].state2  # avança PC para o próximo estado da transição
                     wordList.pop(0)  # remove letra atual da lista
                     valid = PC.isFinal  # o estado atual é o final?
@@ -109,6 +108,8 @@ class FA:
                     print("INVALID")
                     wordList = []  # esvazia a lista de caracteres da palavra (break)
                     valid = False
+                    self.printFA() # calma
+                    print(curTransitions)
             print(PC.label)
             print(wordList)  # imprime lista nessa etapa
         return valid
@@ -210,15 +211,15 @@ class FA:
     def matchState(self, s):
         output = None
         for i in self.states:
-            if output is None and i.isInitial == s.isInitial and i.isFinal == s.isFinal and i.label == s.label:
+            if output is None and i.isFinal == s.isFinal and i.label == s.label:
                 output = i
         return output
 
-    def toJffFile(self):
-        if os.path.exists("AFD.jff"):
-            os.remove("AFD.jff")
+    def toJffFile(self,fileName):
+        if os.path.exists(fileName):
+            os.remove(fileName)
 
-        file = open("AFD.jff", "a")
+        file = open(fileName, "a")
         file.write(
             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><!--Created by Camilla + Diogo.--><structure>\n")
 
@@ -260,7 +261,7 @@ class FA:
         file.write("</structure>")
 
 
-def fromJffFile():
+def fromJffFile(fileName):
     states = []
     transitions = []
     alphabet = set([])
@@ -291,7 +292,7 @@ def fromJffFile():
         transitions.append(transition)
         alphabet.add(symbol)
 
-    file = open("AFD.jff", "r")
+    file = open(fileName, "r")
     lines = file.readlines()
 
     for i in range(len(lines)):
@@ -410,4 +411,72 @@ def createFromJffFileTest():
     automaton.printFA()
 
 
-createFromJffFileTest()
+###
+
+
+file_types = [("JFF (*.jff)", "*.jff")]
+
+layout = [
+
+        [sg.Text("Load JFLAP Automaton:")],
+
+        [
+            sg.Input(size=(25, 1), key="-FILE-"),
+            sg.FileBrowse(file_types=file_types,initial_folder=os.getcwd()),
+            sg.Button("OK",key="-LOADDFA-")
+        ],
+
+
+        [sg.Button("Convert to DFA",disabled=True,key="-CONVERT-"),
+         sg.Text("Saved converted automaton!",visible=False,key="-SAVENOTIF-")],
+
+        [sg.Text("Validate words to the automaton:")],
+
+        [
+            sg.Input(size=(25, 1), key="-WORD-",disabled=True),
+            sg.Button("Test Word",disabled=True,key="-TEST-"),
+            sg.Text("Valid?"),
+            sg.Text("YES",visible=False,key="-WORD_T-"),
+            sg.Text("NO",visible=False,key="-WORD_F-")
+        ],
+    ]
+    
+window = sg.Window("Automaton Simulator", layout) # Abre a janela
+
+workingAutomaton = None
+
+while True: # Enquanto janela aberta, verificar eventos
+    event, values = window.read()
+
+    if event == "Exit" or event == sg.WIN_CLOSED: # Se a janela for fechada, encerrar loop
+        break
+    
+    if event == "-LOADDFA-":
+        window['-SAVENOTIF-'].update(visible=False)
+        fileName = os.path.basename(values['-FILE-']) 
+        print(fileName)
+        workingAutomaton = fromJffFile(fileName)
+        workingAutomaton.printFA()
+        window['-CONVERT-'].update(disabled=False)
+
+    if event == "-CONVERT-":
+        if workingAutomaton != None:
+            newAutomaton = workingAutomaton.convertNFA()
+            workingAutomaton = newAutomaton
+            workingAutomaton.printFA()
+            workingAutomaton.toJffFile("OUTPUT.jff")
+            window['-SAVENOTIF-'].update(visible=True)
+            window['-WORD-'].update(disabled=False)
+            window['-TEST-'].update(disabled=False)
+    
+    if event == "-TEST-":
+        window['-SAVENOTIF-'].update(visible=False)
+        if workingAutomaton != None:
+            word = values["-WORD-"]
+            valid = workingAutomaton.readWord(word)
+            if valid:
+                window['-WORD_T-'].update(visible=True)
+                window['-WORD_F-'].update(visible=False)
+            else:
+                window['-WORD_T-'].update(visible=False)
+                window['-WORD_F-'].update(visible=True)
