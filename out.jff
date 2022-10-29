@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--Created by Camilla + Diogo.--><structure>
+	<type>fa</type>
+	<automaton>
+		<!--The list of states.-->
+		<state id="0" name="Q0">
+			<x>50.0</x>
+			<y>100.0</y>
+			<initial/>
+		</state>
+		<state id="1" name="Q1">
+			<x>100.0</x>
+			<y>130.0</y>
+		</state>
+		<state id="2" name="Q2">
+			<x>150.0</x>
+			<y>160.0</y>
+		</state>
+		<state id="3" name="Q3">
+			<x>200.0</x>
+			<y>190.0</y>
+			<final/>
+		</state>
+		<!--The list of transitions.-->
+		<transition>
+			<from>0</from>
+			<to>0</to>
+			<read>a</read>
+		</transition>
+		<!--Transition 1-->
+		<transition>
+			<from>0</from>
+			<to>0</to>
+			<read>b</read>
+		</transition>
+		<!--Transition 2-->
+		<transition>
+			<from>0</from>
+			<to>1</to>
+			<read>a</read>
+		</transition>
+		<!--Transition 3-->
+		<transition>
+			<from>0</from>
+			<to>2</to>
+			<read>b</read>
+		</transition>
+		<!--Transition 4-->
+		<transition>
+			<from>1</from>
+			<to>3</to>
+			<read>b</read>
+		</transition>
+		<!--Transition 5-->
+		<transition>
+			<from>2</from>
+			<to>3</to>
+			<read>a</read>
+		</transition>
+		<!--Transition 6-->
+		<transition>
+			<from>3</from>
+			<to>3</to>
+			<read>a</read>
+		</transition>
+		<!--Transition 7-->
+		<transition>
+			<from>3</from>
+			<to>3</to>
+			<read>b</read>
+		</transition>
+		<!--Transition 8-->
+	</automaton>
+</structure><?xml version="1.0" encoding="UTF-8" standalone="no"?><!--Created by Camilla + Diogo.--><structure>
+	<type>fa</type>
+	<automaton>
+		<!--The list of states.-->
+		<state id="0" name="Q0">
+			<x>50.0</x>
+			<y>100.0</y>
+			<initial/>
+		</state>
+		<state id="1" name="Q0Q1">
+			<x>100.0</x>
+			<y>130.0</y>
+		</state>
+		<state id="2" name="Q0Q2">
+			<x>150.0</x>
+			<y>160.0</y>
+		</state>
+		<state id="3" name="Q3">
+			<x>200.0</x>
+			<y>190.0</y>
+			<final/>
+		</state>
+		<state id="4" name="Q0Q2Q3">
+			<x>250.0</x>
+			<y>220.0</y>
+			<final/>
+		</state>
+		<state id="5" name="Q0Q1Q3">
+			<x>300.0</x>
+			<y>250.0</y>
+			<final/>
+		</state>
+		<state id="6" name="Q1">
+			<x>350.0</x>
+			<y>280.0</y>
+		</state>
+		<state id="7" name="Q2">
+			<x>400.0</x>
+			<y>310.0</y>
+		</state>
+		<!--The list of transitions.-->
+		<transition>
+			<from>0</from>
+			<to>1</to>
+			<read>a</read>
+		</transition>
+		<!--Transition 1-->
+		<transition>
+			<from>0</from>
+			<to>2</to>
+			<read>b</read>
+		</transition>
+		<!--Transition 2-->
+		<transition>
+			<from>6</from>
+			<to>3</to>
+			<read>b</read>
+		</transition>
+		<!--Transition 3-->
+		<transition>
+			<from>1</from>
+			<to>1</to>
+			<read>a</read>
+		</transition>
+		<!--Transition 4-->
+		<transition>
+			<from>1</from>
+			<to>4</to>
+			<read>b</read>
+		</transition>
+		<!--Transition 5-->
+		<transition>
+			<from>7</from>
+			<to>3</to>
+			<read>a</read>
+		</transition>
+		<!--Transition 6-->
+		<transition>
+			<from>2</from>
+			<to>5</to>
+			<read>a</read>
+		</transition>
+		<!--Transition 7-->
+		<transition>
+			<from>2</from>
+			<to>2</to>
+			<read>b</read>
+		</transition>
+		<!--Transition 8-->
+		<transition>
+			<from>4</from>
+			<to>5</to>
+			<read>a</read>
+		</transition>
+		<!--Transition 9-->
+		<transition>
+			<from>4</from>
+			<to>4</to>
+			<read>b</read>
+		</transition>
+		<!--Transition 10-->
+		<transition>
+			<from>5</from>
+			<to>5</to>
+			<read>a</read>
+		</transition>
+		<!--Transition 11-->
+		<transition>
+			<from>5</from>
+			<to>4</to>
+			<read>b</read>
+		</transition>
+		<!--Transition 12-->
+	</automaton>
+</structure><?xml version="1.0" encoding="UTF-8" standalone="no"?><!--Created by Camilla + Diogo.--><structure>
+	<type>fa</type>
+	<automaton>
+		<!--The list of states.-->
+		<state id="0" name="A">
+			<x>50.0</x>
+			<y>100.0</y>
+			<initial/>
+		</state>
+		<state id="1" name="B">
+			<x>100.0</x>
+			<y>130.0</y>
+			<final/>
+		</state>
+		<!--The list of transitions.-->
+		<transition>
+			<from>0</from>
+			<to>0</to>
+			<read>a</read>
+		</transition>
+		<!--Transition 1-->
+		<transition>
+			<from>0</from>
+			<to>0</to>
+			<read>b</read>
+		</transition>
+		<!--Transition 2-->
+		<transition>
+			<from>0</from>
+			<to>1</to>
+			<read>a</read>
+		</transition>
+		<!--Transition 3-->
+	</automaton>
+</structure>

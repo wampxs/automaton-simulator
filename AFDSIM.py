@@ -14,7 +14,8 @@ class State:
         self.id = id
 
     def printState(self):
-        print("[LABEL: " + self.label + ", Final? " + str(self.isFinal) + ", Initial? " + str(self.isInitial) + "]")
+        print("[LABEL: " + self.label + ", Final? " +
+              str(self.isFinal) + ", Initial? " + str(self.isInitial) + "]")
 
     def setId(self, newId):
         self.id = newId
@@ -99,16 +100,20 @@ class FA:
             while len(wordList) > 0:  # enquanto há letras na palavra
                 print(PC.label)
                 print(wordList)
-                curTransitions = self.getStateTransitionsSymbol(PC, wordList[0])  # pega transições do atual estado com a letra atual
+                # pega transições do atual estado com a letra atual
+                curTransitions = self.getStateTransitionsSymbol(
+                    PC, wordList[0])
                 if len(curTransitions) == 1:  # se só há uma transição válida para a letra atual
-                    PC = curTransitions[0].state2  # avança PC para o próximo estado da transição
+                    # avança PC para o próximo estado da transição
+                    PC = curTransitions[0].state2
                     wordList.pop(0)  # remove letra atual da lista
                     valid = PC.isFinal  # o estado atual é o final?
                 else:  # erro, não é AFD!
                     print("INVALID")
-                    wordList = []  # esvazia a lista de caracteres da palavra (break)
+                    # esvazia a lista de caracteres da palavra (break)
+                    wordList = []
                     valid = False
-                    self.printFA() # calma
+                    self.printFA()  # calma
                     print(curTransitions)
             print(PC.label)
             print(wordList)  # imprime lista nessa etapa
@@ -190,7 +195,8 @@ class FA:
                         if not YIsFinal and i.state2.isFinal:
                             YIsFinal = True
 
-                    Y = State(YLabel, YIsFinal, mergedStates=self.getMergedStates(thisTransitions))
+                    Y = State(YLabel, YIsFinal, mergedStates=self.getMergedStates(
+                        thisTransitions))
                     newTransition = Transition(X, Y, symbol)
 
                     # Check if state already exist in new automaton states
@@ -215,7 +221,7 @@ class FA:
                 output = i
         return output
 
-    def toJffFile(self,fileName):
+    def toJffFile(self, fileName):
         if os.path.exists(fileName):
             os.remove(fileName)
 
@@ -232,7 +238,8 @@ class FA:
         stateCounter = 0
         for s in self.states:
             s.id = stateCounter  # add id in states
-            file.write("\t\t<state id=\"" + str(s.id) + "\" name=\"" + s.label + "\">\n")
+            file.write("\t\t<state id=\"" + str(s.id) +
+                       "\" name=\"" + s.label + "\">\n")
             file.write("\t\t\t<x>" + str(x) + ".0</x>\n")
             x += 50
             file.write("\t\t\t<y>" + str(y) + ".0</y>\n")
@@ -254,7 +261,8 @@ class FA:
             file.write("\t\t\t<to>" + str(thisState2.id) + "</to>\n")
             file.write("\t\t\t<read>" + transition.symbol + "</read>\n")
             file.write("\t\t</transition>\n")
-            file.write("\t\t<!--Transition " + str(transitionCounter) + "-->\n")
+            file.write("\t\t<!--Transition " +
+                       str(transitionCounter) + "-->\n")
             transitionCounter += 1
 
         file.write("\t</automaton>\n")
@@ -270,11 +278,24 @@ def fromJffFile(fileName):
         id = re.search('id="(.*)" ', subarray[0]).group(1)
         label = re.search('name="(.*)">', subarray[0]).group(1)
 
-        initial = bool(match for match in subarray if "<initial/>" in match)
+        final = False
+        initial = False
 
-        final = bool(match for match in subarray if "<final/>" in match)
+        substringFinal = "<final/>"
+        substringInitial = "<initial/>"
 
-        state = State(label=str(label), isFinal=final, isInitial=initial, mergedStates=None, id=id)
+        for i in range(len(subarray)):
+            if final is False:
+                ansFinal = subarray[i].find(substringFinal)
+                if ansFinal != -1:
+                    final = True
+            if initial is False:
+                ansInitial = subarray[i].find(substringInitial)
+                if ansInitial != -1:
+                    initial = True
+
+        state = State(label=str(label), isFinal=final,
+                      isInitial=initial, mergedStates=None, id=id)
 
         states.append(state)
 
@@ -288,7 +309,8 @@ def fromJffFile(fileName):
         destinationId: str = re.search('<to>(.*)</to>', subarray[2]).group(1)
         symbol = re.search('<read>(.*)</read>', subarray[3]).group(1)
 
-        transition = Transition(state1=getStateById(initialId), state2=getStateById(destinationId), symbol=symbol)
+        transition = Transition(state1=getStateById(
+            initialId), state2=getStateById(destinationId), symbol=symbol)
         transitions.append(transition)
         alphabet.add(symbol)
 
@@ -418,49 +440,50 @@ file_types = [("JFF (*.jff)", "*.jff")]
 
 layout = [
 
-        [sg.Text("Load JFLAP Automaton:")],
+    [sg.Text("Load JFLAP Automaton:")],
 
-        [
-            sg.Input(size=(25, 1), key="-FILE-"),
-            sg.FileBrowse(file_types=file_types,initial_folder=os.getcwd()),
-            sg.Button("OK",key="-LOADDFA-")
-        ],
+    [
+        sg.Input(size=(25, 1), key="-FILE-"),
+        sg.FileBrowse(file_types=file_types, initial_folder=os.getcwd()),
+        sg.Button("OK", key="-LOADDFA-")
+    ],
 
 
-        [sg.Button("Convert to DFA",disabled=True,key="-CONVERT-"),
-         sg.Text("Saved converted automaton!",visible=False,key="-SAVENOTIF-")],
+    [sg.Button("Convert to DFA", disabled=True, key="-CONVERT-"),
+     sg.Text("Saved converted automaton!", visible=False, key="-SAVENOTIF-")],
 
-        [sg.Text("Validate words to the automaton:")],
+    [sg.Text("Validate words to the automaton:")],
 
-        [
-            sg.Input(size=(25, 1), key="-WORD-",disabled=True),
-            sg.Button("Test Word",disabled=True,key="-TEST-"),
-            sg.Text("Valid?"),
-            sg.Text("YES",visible=False,key="-WORD_T-"),
-            sg.Text("NO",visible=False,key="-WORD_F-")
-        ],
-    ]
-    
-window = sg.Window("Automaton Simulator", layout) # Abre a janela
+    [
+        sg.Input(size=(25, 1), key="-WORD-", disabled=True),
+        sg.Button("Test Word", disabled=True, key="-TEST-"),
+        sg.Text("Valid?"),
+        sg.Text("YES", visible=False, key="-WORD_T-"),
+        sg.Text("NO", visible=False, key="-WORD_F-")
+    ],
+]
+
+window = sg.Window("Automaton Simulator", layout)  # Abre a janela
 
 workingAutomaton = None
 
-while True: # Enquanto janela aberta, verificar eventos
+while True:  # Enquanto janela aberta, verificar eventos
     event, values = window.read()
 
-    if event == "Exit" or event == sg.WIN_CLOSED: # Se a janela for fechada, encerrar loop
+    if event == "Exit" or event == sg.WIN_CLOSED:  # Se a janela for fechada, encerrar loop
         break
-    
+
     if event == "-LOADDFA-":
         window['-SAVENOTIF-'].update(visible=False)
-        fileName = os.path.basename(values['-FILE-']) 
+        fileName = os.path.basename(values['-FILE-'])
+        # get whole path
         print(fileName)
         workingAutomaton = fromJffFile(fileName)
         workingAutomaton.printFA()
         window['-CONVERT-'].update(disabled=False)
 
     if event == "-CONVERT-":
-        if workingAutomaton != None:
+        if workingAutomaton is not None:
             newAutomaton = workingAutomaton.convertNFA()
             workingAutomaton = newAutomaton
             workingAutomaton.printFA()
@@ -468,10 +491,10 @@ while True: # Enquanto janela aberta, verificar eventos
             window['-SAVENOTIF-'].update(visible=True)
             window['-WORD-'].update(disabled=False)
             window['-TEST-'].update(disabled=False)
-    
+
     if event == "-TEST-":
         window['-SAVENOTIF-'].update(visible=False)
-        if workingAutomaton != None:
+        if workingAutomaton is not None:
             word = values["-WORD-"]
             valid = workingAutomaton.readWord(word)
             if valid:
