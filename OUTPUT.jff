@@ -2,64 +2,62 @@
 	<type>fa</type>
 	<automaton>
 		<!--The list of states.-->
-		<state id="0" name="Q0">
+		<state id="0" name="q0">
 			<x>50.0</x>
 			<y>100.0</y>
 			<initial/>
-			<final/>
 		</state>
-		<state id="1" name="Q0Q1">
+		<state id="1" name="q1q2">
 			<x>100.0</x>
 			<y>130.0</y>
 			<final/>
 		</state>
-		<state id="2" name="Q0Q2">
+		<state id="2" name="q1">
 			<x>150.0</x>
 			<y>160.0</y>
 			<final/>
 		</state>
-		<state id="3" name="Q3">
+		<state id="3" name="q2">
 			<x>200.0</x>
 			<y>190.0</y>
-			<initial/>
-			<final/>
-		</state>
-		<state id="4" name="Q0Q2Q3">
-			<x>250.0</x>
-			<y>220.0</y>
-			<initial/>
-			<final/>
-		</state>
-		<state id="5" name="Q0Q1Q3">
-			<x>300.0</x>
-			<y>250.0</y>
-			<initial/>
-			<final/>
-		</state>
-		<state id="6" name="Q1">
-			<x>350.0</x>
-			<y>280.0</y>
-			<initial/>
-			<final/>
-		</state>
-		<state id="7" name="Q2">
-			<x>400.0</x>
-			<y>310.0</y>
-			<initial/>
 			<final/>
 		</state>
 		<!--The list of transitions.-->
 		<transition>
 			<from>0</from>
-			<to>1</to>
-			<read>a</read>
+			<to>0</to>
+			<read>b</read>
 		</transition>
 		<!--Transition 1-->
 		<transition>
 			<from>0</from>
+			<to>1</to>
+			<read>a</read>
+		</transition>
+		<!--Transition 2-->
+		<transition>
+			<from>2</from>
 			<to>2</to>
 			<read>b</read>
 		</transition>
-		<!--Transition 2-->
+		<!--Transition 3-->
+		<transition>
+			<from>3</from>
+			<to>3</to>
+			<read>a</read>
+		</transition>
+		<!--Transition 4-->
+		<transition>
+			<from>1</from>
+			<to>2</to>
+			<read>b</read>
+		</transition>
+		<!--Transition 5-->
+		<transition>
+			<from>1</from>
+			<to>3</to>
+			<read>a</read>
+		</transition>
+		<!--Transition 6-->
 	</automaton>
 </structure>

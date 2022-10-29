@@ -482,10 +482,9 @@ while True:  # Enquanto janela aberta, verificar eventos
 
     if event == "-LOADDFA-":
         window['-SAVENOTIF-'].update(visible=False)
+        fileWholePath = values['-FILE-']
         fileName = os.path.basename(values['-FILE-'])
-        # get whole path
-        print(fileName)
-        workingAutomaton = fromJffFile(fileName)
+        workingAutomaton = fromJffFile(fileWholePath)
         workingAutomaton.printFA()
         window['-CONVERT-'].update(disabled=False)
 
