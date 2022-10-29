@@ -64,6 +64,13 @@ class FA:
                 sTransitions.append(i)
         return sTransitions
 
+    def getStateTransitionsSymbol1(self, state, symbol):
+        sTransitions = []
+        for i in self.transitions:
+            if self.compareStates(i.state1, state) and i.symbol == symbol:
+                sTransitions.append(i)
+        return sTransitions
+
     def getStateTransitionsSymbol(self, state, symbol):
         sTransitions = []
         if state.mergedStates is None:
@@ -101,7 +108,7 @@ class FA:
                 print(PC.label)
                 print(wordList)
                 # pega transições do atual estado com a letra atual
-                curTransitions = self.getStateTransitionsSymbol(
+                curTransitions = self.getStateTransitionsSymbol1(
                     PC, wordList[0])
                 if len(curTransitions) == 1:  # se só há uma transição válida para a letra atual
                     # avança PC para o próximo estado da transição
